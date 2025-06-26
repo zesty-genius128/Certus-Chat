@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui-simple
+    ports:
+      - "3000:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEBUI_SECRET_KEY=simple-secret-123
+      - ENABLE_OPENAI_API=true
+      - DEFAULT_MODELS=gpt-3.5-turbo
+      - WEBUI_NAME="Drug Info Chat"
+      - ENABLE_SIGNUP=true
+      - DEFAULT_USER_ROLE=admin
+    restart: unless-stopped
+    tmpfs:
+      - /app/backend/data  # No persistence = no permission issues

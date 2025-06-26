@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # MCPO - Converts your MCP server to OpenAPI
+  mcpo:
+    image: ghcr.io/open-webui/mcpo:main
+    container_name: mcpo-proxy
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=top-secret-mcpo-key
+    command: >
+      mcpo 
+      --host 0.0.0.0 
+      --port 8000 
+      --api-key top-secret-mcpo-key
+      --server-type streamable_http
+      -- 
+      ${MCP_SERVER_URL}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Open WebUI - Main chat interface
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    volumes:
+      - open-webui-data:/app/backend/data
+    ports:
+      - "3000:8080"
+    environment:
+      # OpenAI API
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - ENABLE_OPENAI_API=true
+      - DEFAULT_MODELS=gpt-3.5-turbo,gpt-4
+      
+      # UI Configuration
+      - WEBUI_NAME="FDA Drug Information Chat"
+      - ENABLE_SIGNUP=false
+      - DEFAULT_USER_ROLE=user
+      
+    depends_on:
+      - mcpo
+    restart: unless-stopped
+
+volumes:
+  open-webui-data:
